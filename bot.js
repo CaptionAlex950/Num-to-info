@@ -4,17 +4,16 @@ const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
 
-const API = {
-  KEY: "my_dayne",
-  BASE: "https://username-to-number.vercel.app/"
-};
-
 const CREDIT = "⚡ 𝑺𝒌 ꭗ 𓆩𝐌.𝐒.𝐃𓆪 & ☠︎𝙑𝙞𝙧𝙖𝙩𓆪";
+
+// ==================== NEW API ====================
+const API_BASE = "https://api.vectorxo.online/lookup";
+const API_KEY = "vectorxo";   // Your key
 
 // BOT
 const bot = new TelegramBot("8716571092:AAEE3VH9PAHQJBSC9vmLY1jrfrIizX6XcsM", { polling: true });
 
-// START
+// START Command
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id,
 `💀 NUMBER INFO BOT
@@ -25,38 +24,45 @@ Command:
 ${CREDIT}`);
 });
 
-// NUMBER COMMAND
+// NUMBER Command
 bot.onText(/\/num (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
-  const number = match[1].trim();
+  let number = match[1].trim();
 
-  const url = `${API.BASE}?key=${API.KEY}&num=${number}`;
+  // Optional: Remove +91 or 0 if user sends with prefix
+  number = number.replace(/^(\+91|91|0)/, '');
+
+  if (number.length !== 10 || isNaN(number)) {
+    return bot.sendMessage(chatId, "❌ Please send a valid 10-digit Indian mobile number.");
+  }
+
+  const url = `\( {API_BASE}?key= \){API_KEY}&mobile=${number}`;
 
   try {
     const res = await axios.get(url);
     const data = res.data;
 
-    const result = data?.phone_details?.result?.results;
+    // New API returns an array → take the first result
+    let result = Array.isArray(data) ? data[0] : data;
 
-    if (!result || result.length === 0) {
+    if (!result || !result.mobile) {
       return bot.sendMessage(chatId, "❌ No Data Found");
     }
 
-    const info = result[0];
-
     bot.sendMessage(chatId,
 `╭━━━ 💀 NUMBER INFO ━━━╮
-📱 Number: ${info.mobile}
-👤 Name: ${info.name}
-👨 Father: ${info.fname}
-📍 Address: ${info.address}
-📡 Circle: ${info.circle}
+📱 Number: ${result.mobile}
+👤 Name: ${result.name || "N/A"}
+👨 Father: ${result.fname || "N/A"}
+📍 Address: ${result.address || "N/A"}
+📡 Circle: ${result.circle || "N/A"}
 
 ╰━━━━━━━━━━━━━━╯
 ${CREDIT}`);
 
   } catch (e) {
-    bot.sendMessage(chatId, "⚠️ API Error");
+    console.error(e.message);
+    bot.sendMessage(chatId, "⚠️ API Error\nTry again later.");
   }
 });
 
@@ -64,4 +70,6 @@ ${CREDIT}`);
 app.get("/", (req, res) => res.send("Bot Running ✅"));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
