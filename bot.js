@@ -12,7 +12,7 @@ const API = {
 const CREDIT = "⚡ 𝑺𝒌 ꭗ 𓆩𝐌.𝐒.𝐃𓆪 & ☠︎𝙑𝙞𝙧𝙖𝙩𓆪";
 
 // BOT
-const bot = new TelegramBot("8235223939:AAGEuZEQse4eaTvHPqstvCPYJWtek0ycPCA", { polling: true });
+const bot = new TelegramBot("8716571092:AAEE3VH9PAHQJBSC9vmLY1jrfrIizX6XcsM", { polling: true });
 
 // START
 bot.onText(/\/start/, (msg) => {
