@@ -6,7 +6,7 @@ from datetime import datetime
 # Bot Token Environment se lega (Heroku pe Config Vars mein daalenge)
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN environment variable set nahi hai!")
+    raise ValueError("8716571092:AAEE3VH9PAHQJBSC9vmLY1jrfrIizX6XcsM")
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
