@@ -6,14 +6,14 @@ const app = express();
 
 const CREDIT = "⚡ 𝑺𝒌 ꭗ 𓆩𝐌.𝐒.𝐃𓆪 & ☠︎𝙑𝙞𝙧𝙖𝙩𓆪";
 
-// New API
+// API Details
 const API_BASE = "https://api.vectorxo.online/lookup";
 const API_KEY = "vectorxo";
 
-// BOT
+// Telegram Bot
 const bot = new TelegramBot("8716571092:AAEE3VH9PAHQJBSC9vmLY1jrfrIizX6XcsM", { polling: true });
 
-// START
+// /start Command
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, 
 `💀 NUMBER INFO BOT
@@ -23,7 +23,7 @@ Command: /num 9876543210
 ${CREDIT}`);
 });
 
-// NUMBER COMMAND
+// /num Command
 bot.onText(/\/num (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   let number = match[1].trim().replace(/^(\+91|91|0)/, '');
@@ -32,55 +32,58 @@ bot.onText(/\/num (.+)/, async (msg, match) => {
     return bot.sendMessage(chatId, "❌ Please send a valid 10-digit Indian mobile number.");
   }
 
+  // ✅ Correct URL
   const url = `\( {API_BASE}?key= \){API_KEY}&mobile=${number}`;
 
   try {
-    // Increased timeout + better config
     const res = await axios.get(url, { 
-      timeout: 15000,           // 15 seconds timeout
-      headers: { "User-Agent": "Mozilla/5.0" }
+      timeout: 15000,
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" 
+      }
     });
 
-    const data = res.data;
+    let data = res.data;
 
-    // API mostly returns array
+    // API returns array → handle both array and single object
     const results = Array.isArray(data) ? data : [data];
 
-    if (!results || results.length === 0 || !results[0].mobile) {
+    if (!results || results.length === 0 || !results[0]?.mobile) {
       return bot.sendMessage(chatId, "❌ No Data Found for this number.");
     }
 
-    // Agar multiple results hain to pehle wala best dikhao
+    // Best result le lo (pehle wala)
     const info = results[0];
 
-    bot.sendMessage(chatId,
+    const message = 
 `╭━━━ 💀 NUMBER INFO ━━━╮
-📱 Number: ${info.mobile}
-👤 Name: ${info.name || "N/A"}
-👨 Father: ${info.fname || "N/A"}
-📍 Address: ${info.address || "N/A"}
-📡 Circle: ${info.circle || "N/A"}
+📱 Number : ${info.mobile || number}
+👤 Name    : ${info.name || "N/A"}
+👨 Father  : ${info.fname || "N/A"}
+📍 Address : ${info.address || "N/A"}
+📡 Circle  : ${info.circle || "N/A"}
+╰━━━━━━━━━━━━━━━━━╯
 
-╰━━━━━━━━━━━━━━╯
-${CREDIT}`);
+${CREDIT}`;
+
+    bot.sendMessage(chatId, message);
 
   } catch (error) {
-    console.error("API Error:", error.message);   // Console mein detail dikhega
-
+    console.error("API Error Details:", error.message);
+    
     if (error.code === 'ECONNABORTED') {
-      bot.sendMessage(chatId, "⚠️ API is slow right now.\nTry again after 10-15 seconds.");
+      bot.sendMessage(chatId, "⚠️ API is taking too long.\nTry again after 10-15 seconds.");
     } else if (error.response) {
-      bot.sendMessage(chatId, `⚠️ API Error (${error.response.status})\nTry again later.`);
+      bot.sendMessage(chatId, `⚠️ API Error (Status: ${error.response.status})\nTry again later.`);
     } else {
       bot.sendMessage(chatId, "⚠️ API Error\nTry again later.");
     }
   }
 });
 
-// Server
+// Simple server
 app.get("/", (req, res) => res.send("Bot Running ✅"));
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Bot Running on port ${PORT}`);
+  console.log(`✅ Bot is running on port ${PORT}`);
 });
